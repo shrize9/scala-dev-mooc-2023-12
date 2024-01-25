@@ -1,5 +1,6 @@
 
 
+
 def drawLine()={
   println((0 to 20).map(_=>"-").mkString(""))
 }
@@ -29,30 +30,30 @@ object option{
      *
      * Реализовать метод printIfAny, который будет печатать значение, если оно есть
      */
-     def printIfAny(): Unit =this match {
-       case Some(v) => println(v)
-       case None => ()
-     }
+    def printIfAny(): Unit =this match {
+      case Some(v) => println(v)
+      case None => ()
+    }
 
 
     /**
      *
      * Реализовать метод zip, который будет создавать Option от пары значений из 2-х Option
      */
-     def zip[A](value:Option[A]):Option[(T,A)]= this match {
-       case Some(v) if value !=None => Option((v, {value:Option[A]}.get))
-       case _=> None
-     }
+    def zip[A](value:Option[A]):Option[(T,A)]= this match {
+      case Some(v) if value !=None => Option((v, {value:Option[A]}.get))
+      case _=> None
+    }
 
     /**
      *
      * Реализовать метод filter, который будет возвращать не пустой Option
      * в случае если исходный не пуст и предикат от значения = true
      */
-     def filter(f:T=>Boolean):Option[T]= this match {
-       case Some(v) if f(v) => Option(v)
-       case _=> None
-     }
+    def filter(f:T=>Boolean):Option[T]= this match {
+      case Some(v) if f(v) => Option(v)
+      case _=> None
+    }
   }
 
   case class Some[T](v: T) extends Option[T]
@@ -131,10 +132,10 @@ object list {
     private def loopFilterByCond[T](a:List[T], itemCallback:(T)=>Boolean):List[T] = a match {
       case Nil => {Nil}
       case Cons(head, Nil) if(itemCallback(head))=> {
-          Cons(head, Nil)
+        Cons(head, Nil)
       }
       case Cons(head, Nil) if(!itemCallback(head))=> {
-          Nil
+        Nil
       }
       case Cons(head, tail) if(itemCallback(head))=> {
         Cons(head, loopFilterByCond(tail, itemCallback))
@@ -315,6 +316,7 @@ def shoutString(items:List[String]): List[String] ={
   items.map((item)=> item +"!")
 }
 println(shoutString(List("hello","world")).mkString(" "))
+
 
 
 
