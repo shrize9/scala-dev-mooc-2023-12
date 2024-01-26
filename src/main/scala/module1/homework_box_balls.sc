@@ -7,8 +7,8 @@ val WhiteBall:ColorBall =1.toByte
 
 class Box(val index:Int){
   private var balls =List[ColorBall](
-        BlackBall,BlackBall,BlackBall,
-        WhiteBall,WhiteBall,WhiteBall)
+                      BlackBall,BlackBall,BlackBall,
+                      WhiteBall,WhiteBall,WhiteBall)
 
   def isEmpty = balls.isEmpty
 
