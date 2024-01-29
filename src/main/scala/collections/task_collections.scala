@@ -16,8 +16,11 @@ object task_collections {
    *
    * **/
   def capitalizeIgnoringASCII(text: List[String]): List[String] = {
-    List.empty
+    text.tail.foldLeft(List(text.head)){case (accum, nextVal)=> accum ::: List({if(isASCIIString(nextVal)) nextVal.toUpperCase else nextVal.toLowerCase}) }
   }
+
+  println(capitalizeIgnoringASCII(List("Lorem", "ipsum" ,"dolor", "sit", "amet")).mkString(","))
+  println(capitalizeIgnoringASCII(List("Оказывается", "ЗвУк", "КЛАВИШЬ", "печатной", "Машинки", "не", "СТАЛ", "ограничивающим", "фактором")).mkString(","))
 
   /**
    *
@@ -28,9 +31,15 @@ object task_collections {
    *
    * HINT: Для всех возможных комбинаций чисел стоит использовать Map
    * **/
+  val digitToText:Map[Char,String]  = Map('0'->"zero", '1'->"one", '2'->"two", '3'->"three", '4'->"four", '5'->"five", '6'->"six", '7'->"seven", '8'->"eight", '9'->"nine")
   def numbersToNumericString(text: String): String = {
-    ""
+    text.flatMap{
+      case curChar if(digitToText.get(curChar).isDefined)=> digitToText.get(curChar).get
+      case curChar=> curChar.toString
+    }
   }
+  print(s"hello 2 is 4 world 8! ${Console.GREEN}is${Console.RESET} ")
+  println(numbersToNumericString("hello 2 is 4 world 8!"))
 
   /**
    *
@@ -42,13 +51,18 @@ object task_collections {
 
   case class Auto(mark: String, model: String)
 
+  val dealer1 =List(Auto("toyota","land cruiser"),Auto("toyota","prius"),Auto("toyota","harrier"),Auto("honda","civic"),Auto("reno","duster"))
+  val dealer2 =List(Auto("toyota","land cruiser"),Auto("lada","vesta"),Auto("lada","granta"),Auto("honda","civic"),Auto("bmw","x5"))
   /**
    * Хотим узнать какие машины можно обслужить учитывая этих двух дилеров
    * Реализуйте метод который примет две коллекции (два источника) и вернёт объединенный список уникальный значений
    **/
   def intersectionAuto(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    (dealerOne.toList ::: dealerTwo.toList).distinct
   }
+
+  println("intersectionAuto")
+  println(intersectionAuto(dealer1, dealer2))
 
   /**
    * Хотим узнать какие машины обслуживается в первом дилеромском центре, но не обслуживаются во втором
@@ -56,6 +70,14 @@ object task_collections {
    * и вернёт уникальный список машин обслуживающихся в первом дилерском центре и не обслуживающимся во втором
    **/
   def filterAllLeftDealerAutoWithoutRight(dealerOne: Iterable[Auto], dealerTwo: Iterable[Auto]): Iterable[Auto] = {
-    Iterable.empty
+    for{
+      auto <-dealerOne
+      if !dealerTwo.exists(_ == auto)
+    } yield {
+      auto
+    }
   }
+
+  println("filterAllLeftDealerAutoWithoutRight")
+  println(filterAllLeftDealerAutoWithoutRight(dealer1, dealer2))
 }
