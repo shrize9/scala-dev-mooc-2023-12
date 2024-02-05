@@ -27,6 +27,7 @@ class futures_sequence_test extends AnyFlatSpec {
   def await[A](future: Future[A]): A = Await.result(future, Duration.Inf)
 
   def fut(i: Int)(implicit ex: ExecutionContext): Future[Int] = Future {
+    println(s"need wait for return ${i}")
     Thread.sleep(1000)
     i
   }
