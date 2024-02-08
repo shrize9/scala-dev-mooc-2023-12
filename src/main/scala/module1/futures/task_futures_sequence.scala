@@ -28,11 +28,9 @@ object task_futures_sequence {
           ft.map(Left(_)).recover(Right(_))
       }
     )((List[A](), List[Throwable]())){
-      case (accum, vl)=> {
-        vl match {
+      case (accum, vl)=> vl match {
           case Left(_v) => (accum._1 ::: List(_v), accum._2)
           case Right(err) => (accum._1,  accum._2 ::: List(err))
-        }
       }
     }
   }
