@@ -1,5 +1,7 @@
 package monad
 
+import monad.LazyMonad.Lazy
+
 object for_comprehension {
 
   def main(args: Array[String]): Unit = {
@@ -24,6 +26,15 @@ object for_comprehension {
       if res > 10
     } yield res + another
     println(r3)
+
+
+    val resultLazy: Lazy[Int] = for {
+      first <- Lazy({println("lazy eval 1"); 1})
+      second <- Lazy(2)
+      third <- Lazy(3)
+    } yield first + second + third
+
+    println(resultLazy.get)
   }
 
 }

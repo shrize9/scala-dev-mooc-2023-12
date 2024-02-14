@@ -24,7 +24,6 @@ package object monad {
 
     def withFilter(f: A => Boolean): Wrap[A] = this match {
       case c@NonEmptyWrap(result) if f(result) => c
-      case EmptyWrap => EmptyWrap
       case _=> EmptyWrap
     }
   }
@@ -41,4 +40,21 @@ package object monad {
     override def get: Nothing = throw new NoSuchElementException("Wrap.get")
   } // bottom, null element
 
+
+  object LazyMonad {
+    class Lazy[+A](value: => A) {
+      private lazy val internal: A = value
+
+      def get: A = internal
+
+      def flatMap[B](f: (=> A) => Lazy[B]): Lazy[B] = f(internal)
+
+      def map[B](f: A => B): Lazy[B] = flatMap(x => Lazy(f(x)))
+    }
+
+    object Lazy {
+      def apply[A](value: => A): Lazy[A] = new Lazy(value)
+      def flatten[A](m: Lazy[Lazy[A]]): Lazy[A] = m.flatMap(x => x)
+    }
+  }
 }
