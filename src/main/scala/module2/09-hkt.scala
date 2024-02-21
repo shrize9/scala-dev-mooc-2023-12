@@ -38,22 +38,27 @@ object higher_kinded_types{
 
   object tupleF{
 
-    def tuplef[F[_], A, B](fa: F[A], fb: F[B])(implicit functor:TupleF[F]): F[(A, B)] =
-      functor.flatMap(fa, (a:A)=> functor.map(fb, (b:B) => (a, b)))
+    def tuplef[F[_], A, B](fa: F[A], fb: F[B])(implicit containerF: ContainerF[F]): F[(A, B)] =
+      containerF.flatMap(fa)((a:A)=> containerF.map(fb)((b:B) => (a, b)))
 
-    trait TupleF[F[_]] {
-      def map[A,B](x: F[A], f: A => B): F[B]
-      def flatMap[A,B](x: F[A], f: A => F[B]): F[B]
+    trait ContainerF[F[_]] {
+      def map[A,B](x: F[A])( f: A => B): F[B]
+      def flatMap[A,B](x: F[A])( f: A => F[B]): F[B]
     }
 
-    implicit object optionFunctor extends TupleF[Option] {
-      override def map[A,B](x: Option[A], f: A => B): Option[B] = x map f
-      override def flatMap[A,B](x: Option[A], f: A => Option[B]): Option[B] = x flatMap f
+    implicit object optionFunctor extends ContainerF[Option] {
+      override def map[A,B](x: Option[A])( f: A => B): Option[B] = x map f
+      override def flatMap[A,B](x: Option[A])( f: A => Option[B]): Option[B] = x flatMap f
     }
 
-    implicit object listFunctor extends TupleF[List] {
-      override def map[A,B](x: List[A], f: A => B): List[B] = x map f
-      override def flatMap[A,B](x: List[A], f: A => List[B]): List[B] = x flatMap f
+    implicit object listFunctor extends ContainerF[List] {
+      override def map[A,B](x: List[A])( f: A => B): List[B] = x map f
+      override def flatMap[A,B](x: List[A])( f: A => List[B]): List[B] = x flatMap f
+    }
+
+    def from[F[_], A, B](x:F[_])(map:A => B, flatMap:A => F[B]) = new ContainerF[F] {
+      override def map[A, B](x: F[A])(f: A => B): F[B] = ???
+      override def flatMap[A, B](x: F[A])(f: A => F[B]): F[B] = ???
     }
 
   }
