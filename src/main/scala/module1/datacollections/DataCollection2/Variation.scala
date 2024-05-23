@@ -1,39 +1,25 @@
 package module1.datacollections.DataCollection2
 
 object Variation {
+  trait Fruit
+  class Apple extends  Fruit
 
-  abstract class Animal {
-    def name: String
+  class Box[+T](item: T)
+  val fruitBox: Box[Fruit] = new Box[Apple](new Apple)
+
+
+  class Printer[-T] {
+    def print(item: T): Unit = println(item)
   }
 
-  case class Cat(name: String) extends Animal
-  case class Dog(name: String) extends Animal
-  class Box[A] (var content: A)
+  val stringPrinter: Printer[String] = new Printer[Any]
+  stringPrinter.print("Hello")
 
-
-  def main(args: Array[String]): Unit ={
-    val myCat = Cat("Tigr");
-    //инвариантность
-//    val myAnimalBox: Box[Animal] = myCat
-
-    //Ковариантность
-    class  ImmutableBox[+A](val content: A)
-    val catbox: ImmutableBox[Cat] = new ImmutableBox[Cat](Cat("Tigr"))
-    val animalBox: ImmutableBox[Animal] = catbox
-
-    // Контрвариантность
-    abstract class Serializer[-A] {
-      def serializer(a: A): String
-    }
-
-    val animalSerializer: Serializer[Animal] = new Serializer[Animal] {
-      def serializer(a: Animal): String = ???
-    }
-
-    val catSerializer: Serializer[Cat]  = animalSerializer
-    catSerializer.serializer(Cat("Tigr"))
-
-
+  class Stack[T](items: List[T]) {
+    def push(item: T): Stack[T] = new Stack(item :: items)
   }
+
+  val intStack: Stack[Int] = new Stack(List(1, 2, 3))
+  val stringStack: Stack[String] = new Stack(List("a", "b", "c"))
 
 }
