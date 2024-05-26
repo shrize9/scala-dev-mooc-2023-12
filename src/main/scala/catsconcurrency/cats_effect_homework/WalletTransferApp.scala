@@ -1,9 +1,11 @@
 package catsconcurrency.cats_effect_homework
 
 import cats.Monad
-import cats.effect.kernel.Ref
 import cats.effect.{IO, IOApp}
+import cats.effect.Sync
+import cats.effect.Ref
 import cats.implicits._
+
 import catsconcurrency.cats_effect_homework.Wallet.{BalanceTooLow, WalletError}
 import Wallet.{BalanceTooLow, WalletError}
 
@@ -28,14 +30,21 @@ object WalletTransferApp extends IOApp.Simple {
     }
 
   // todo: реализовать интерпретатор (не забывая про ошибку списания при недостаточных средствах)
-  final class InMemWallet[F[_]](ref: Ref[F, BigDecimal]) extends Wallet[F] {
-    def balance: F[BigDecimal] = ???
-    def topup(amount: BigDecimal): F[Unit] = ???
-    def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = ???
+
+  final class InMemWallet[F[_]:Sync](ref: Ref[F, BigDecimal]) extends Wallet[F] {
+    def balance: F[BigDecimal] = ref.get
+    def topup(amount: BigDecimal): F[Unit] = ref.update(balance => balance + amount)
+    def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = Sync[F].map(
+      ref.updateAndGet {
+        case oldValue => oldValue - amount
+      }){
+        case newAmount if newAmount <0 => Left(BalanceTooLow)
+        case _ => Right()
+      }
   }
 
   // todo: реализовать конструктор. Снова хитрая сигнатура, потому что создание Ref - это побочный эффект
-  def wallet(balance: BigDecimal): IO[Wallet[IO]] = ???
+  def wallet(balance: BigDecimal): IO[Wallet[IO]] = Ref[IO].of(balance).map (ref =>new InMemWallet[IO](ref))
 
   // а это тест, который выполняет перевод с одного кошелька на другой и выводит балансы после операции. Тоже менять не нужно
   def testTransfer: IO[(BigDecimal, BigDecimal)] =
@@ -47,9 +56,19 @@ object WalletTransferApp extends IOApp.Simple {
       b2 <- w2.balance
     } yield (b1, b2)
 
+  def testTransferWithError: IO[(BigDecimal, BigDecimal)] =
+    for {
+      w1 <- wallet(100)
+      w2 <- wallet(200)
+      _ <- transfer(w1, w2, 340)
+      b1 <- w1.balance
+      b2 <- w2.balance
+    } yield (b1, b2)
+
   def run: IO[Unit] = {
     // 50, 250
-    testTransfer.flatMap { case (b1, b2) => IO.println(s"$b1,$b2") }
+    testTransfer.flatMap { case (b1, b2) => IO.println(s"$b1,$b2") } *>
+      testTransferWithError.flatMap { case (b1, b2) => IO.println(s"$b1,$b2") }
   }
 
 }
