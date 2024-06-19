@@ -5,9 +5,8 @@ import cats.effect.{IO, IOApp}
 import cats.effect.Sync
 import cats.effect.Ref
 import cats.implicits._
-
-import catsconcurrency.cats_effect_homework.Wallet.{BalanceTooLow, WalletError}
 import Wallet.{BalanceTooLow, WalletError}
+import cats.data.EitherT
 
 // Здесь мы хотим протестировать бизнес-логику использующую кошельки: функцию transfer.
 // Однако мы не хотим в наших тестах создавать какие-то файлы: в реальном приложении такой тест будет нуждаться в базе данных,
@@ -21,11 +20,11 @@ import Wallet.{BalanceTooLow, WalletError}
 object WalletTransferApp extends IOApp.Simple {
 
   // функция, которую мы тестируем. Здесь менять ничего не нужно :)
-  def transfer[F[_]: Monad](a: Wallet[F],
+  def transfer[F[_]: Monad: Sync](a: Wallet[F],
                             b: Wallet[F],
                             amount: BigDecimal): F[Unit] =
     a.withdraw(amount).flatMap {
-      case Left(BalanceTooLow) => a.topup(amount)
+      case Left(BalanceTooLow) => Sync[F].raiseError(new Exception("BalanceTooLow"))
       case Right(_)            => b.topup(amount)
     }
 
@@ -34,13 +33,18 @@ object WalletTransferApp extends IOApp.Simple {
   final class InMemWallet[F[_]:Sync](ref: Ref[F, BigDecimal]) extends Wallet[F] {
     def balance: F[BigDecimal] = ref.get
     def topup(amount: BigDecimal): F[Unit] = ref.update(balance => balance + amount)
-    def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = Sync[F].map(
-      ref.updateAndGet {
-        case oldValue => oldValue - amount
-      }){
-        case newAmount if newAmount <0 => Left(BalanceTooLow)
-        case _ => Right()
-      }
+    def withdraw(amount: BigDecimal): F[Either[WalletError, Unit]] = {
+      {
+        for {
+          value <- ref.get
+        } yield value match {
+          case value if (value - amount) < 0 => EitherT.left[Unit](Sync[F].pure(BalanceTooLow.asInstanceOf[WalletError]))
+          case value => EitherT.right[WalletError] {
+            ref.set({println(s"new value ${value - amount}");value - amount})
+          }
+        }
+      }.flatMap(_.value)
+    }
   }
 
   // todo: реализовать конструктор. Снова хитрая сигнатура, потому что создание Ref - это побочный эффект
@@ -51,6 +55,11 @@ object WalletTransferApp extends IOApp.Simple {
     for {
       w1 <- wallet(100)
       w2 <- wallet(200)
+      _  <- w1.topup(35)
+      b3 <- w1.balance
+      _  <- IO.println(b3)
+      _ <- w1.withdraw(10)
+      _ <- w1.balance.flatMap(IO.println)
       _ <- transfer(w1, w2, 50)
       b1 <- w1.balance
       b2 <- w2.balance

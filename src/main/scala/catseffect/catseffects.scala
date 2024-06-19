@@ -40,6 +40,18 @@ object catseffects {
 
     async.unsafeRunSync()
     async.flatMap(i=>IO.println(i)).unsafeRunSync()
+
+    val testRef = Ref[IO].of(10)
+    def testRefValue = for{
+      ref <- testRef
+      value <- ref.get
+    } yield value match {
+      case value if value >=100 => Left(1)
+      case _ => Right(1)
+    }
+    testRefValue.flatMap( t =>IO.println(t)).unsafeRunSync()
+
+
   }
 }
 
