@@ -14,6 +14,8 @@ import fs2.{Chunk, Pure, Stream}
 import scala.util.Try
 
 package object homework {
+  import scala.concurrent.duration._
+
   case class Counter(counter:Long)
   implicit val encoderCounter: Encoder[Counter] = deriveEncoder
 
@@ -30,8 +32,6 @@ package object homework {
 
    val serviceSlowChunk:HttpRoutes[IO] = HttpRoutes.of {
      case GET -> Root / "slow" / chunk / total / time => {
-       import scala.concurrent.duration._
-
        val validRequest =Try{
          if(chunk.toInt <0)
            Some("chunk not valid")
@@ -63,7 +63,14 @@ package object homework {
      }
    }
 
-   def routes(counter:Ref[IO,Counter]) = Router("/" -> serviceCounter(counter), "/" ->serviceSlowChunk)
+   val seconds = Stream.awakeEvery[IO](1.second).repeatN(5)
+   val ticker:HttpRoutes[IO] = HttpRoutes.of {
+     case GET -> Root / "tick" => {
+        Ok(seconds.map(_.toString()))
+     }
+   }
+
+   def routes(counter:Ref[IO,Counter]) = Router("/" -> serviceCounter(counter), "/" ->serviceSlowChunk, "/" ->ticker)
    def httpApp(counter:Ref[IO,Counter]): Http[IO,IO] = routes(counter).orNotFound
 
    val server = for {

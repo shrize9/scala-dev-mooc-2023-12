@@ -1,6 +1,7 @@
 package http4sstreamingjson.homework
 
 import cats.effect.{IO, IOApp, Resource}
+import fs2.Stream
 import http4sstreamingjson.homework
 import org.http4s.{Request, Uri}
 import org.http4s.client.Client
@@ -43,6 +44,16 @@ object counterTestServer extends IOApp.Simple {
 }
 
 //Берем стрим для нашего slow запроса
+object tickTestStream extends IOApp.Simple {
+  import scala.concurrent.duration._
+
+  val seconds = Stream.awakeEvery[IO](2.second)
+
+  def run(): IO[Unit] = for{
+    _ <- seconds.evalMap((chunk)=>IO.println(chunk)).compile.drain
+  }yield ()
+}
+
 object slowchunkTestStream extends IOApp.Simple {
   val total =100
   val chunk =10
