@@ -21,8 +21,6 @@ public class LazyRequestContainer<T> {
         AtomicReference<LazyRequestContainer> valueAccum = new AtomicReference<>(this);
         mappers.stream().forEach((mapperMon)->{
             if(mapperMon instanceof LazyRequestContainer.LazyMapRequestContainer<?,?>){
-                System.out.println(mapperMon);
-                System.out.println(valueAccum.get());
                 valueAccum.set(
                         new LazyRequestContainer ((Response) ((LazyMapRequestContainer) mapperMon).mapper.apply(valueAccum.get().value))
                 );

@@ -9,6 +9,10 @@ public class TestRequest {
         LazyRequestContainer<String> value = result1.run();
         value.forEach(System.out::println);
 
-        value.map(resp1->Response.setData (((Response<String>)resp1).getResult() +" test")).run().forEach(System.out::println);
+        value.map(
+                resp1->Response.setData (((Response<String>)resp1).getResult() +" test")
+        ).run().forEach(
+                System.out::println
+        );
     }
 }
