@@ -9,8 +9,9 @@ import org.http4s.server.Router
 import io.circe.{Decoder, Encoder}
 import io.circe.derivation.{deriveDecoder, deriveEncoder}
 import cats.effect.unsafe.implicits.global
-
 import fs2.{Chunk, Pure, Stream}
+
+import scala.util.Try
 
 package object homework {
   case class Counter(counter:Long)
@@ -31,11 +32,34 @@ package object homework {
      case GET -> Root / "slow" / chunk / total / time => {
        import scala.concurrent.duration._
 
-       val stream =Stream((1 to total.toInt) : _*).chunkN(chunk.toInt).covary[IO]
-         .evalMap((chunk)=> {
-            IO.sleep(2.second) *> IO.delay(chunk.toList.map(_.toByte).mkString(""))
-         })
-       Ok(stream)
+       val validRequest =Try{
+         if(chunk.toInt <0)
+           Some("chunk not valid")
+         else if(total.toInt <0)
+           Some("total not valid")
+         else if(time.toInt <0)
+           Some("time not valid")
+         else None
+       }.toEither
+
+       val result =validRequest match {
+         case Left(error)=>{
+           BadRequest(error.getMessage)
+         }
+         case Right(Some(error))=>{
+           BadRequest(error)
+         }
+         case _=>{
+           val stream =Stream((1 to total.toInt) : _*).chunkN(chunk.toInt).covary[IO]
+             .flatMap((chunk)=>fs2.Stream(chunk).covary[IO].delayBy(time.toInt.second))
+             .evalMap((chunk)=> {
+               IO.pure(chunk.toList.map(_.toByte).mkString(""))
+             })
+           Ok(stream)
+         }
+       }
+
+       result
      }
    }
 
