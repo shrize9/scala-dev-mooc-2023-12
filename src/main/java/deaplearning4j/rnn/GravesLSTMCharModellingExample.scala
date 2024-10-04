@@ -5,7 +5,7 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.util.Random
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
-import org.deeplearning4j.nn.conf.layers.{GravesLSTM, RnnOutputLayer}
+import org.deeplearning4j.nn.conf.layers.{GravesLSTM, LSTM, RnnOutputLayer}
 import org.deeplearning4j.nn.conf.{BackpropType, MultiLayerConfiguration, NeuralNetConfiguration, Updater}
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.nn.weights.WeightInit
@@ -58,9 +58,9 @@ object GravesLSTMCharModellingExample {
       .weightInit(WeightInit.XAVIER)
       .updater(Updater.RMSPROP)
       .list
-      .layer(0, new GravesLSTM.Builder().nIn(iter.inputColumns).nOut(lstmLayerSize)
+      .layer(0, new LSTM.Builder().nIn(iter.inputColumns).nOut(lstmLayerSize)
         .activation(Activation.TANH).build())
-      .layer(1, new GravesLSTM.Builder().nIn(lstmLayerSize).nOut(lstmLayerSize)
+      .layer(1, new LSTM.Builder().nIn(lstmLayerSize).nOut(lstmLayerSize)
         .activation(Activation.TANH).build())
       .layer(2, new RnnOutputLayer.Builder(LossFunction.MCXENT)
         .activation(Activation.SOFTMAX)  //MCXENT + softmax for classification
