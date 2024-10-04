@@ -5,7 +5,7 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.util.Random
 import org.deeplearning4j.nn.api.OptimizationAlgorithm
-import org.deeplearning4j.nn.conf.layers.{GravesLSTM, LSTM, RnnOutputLayer}
+import org.deeplearning4j.nn.conf.layers.{ LSTM, RnnOutputLayer}
 import org.deeplearning4j.nn.conf.{BackpropType, MultiLayerConfiguration, NeuralNetConfiguration, Updater}
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork
 import org.deeplearning4j.nn.weights.WeightInit
