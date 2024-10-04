@@ -96,4 +96,9 @@ object Dependencies {
   )
   lazy val zioHttp = "io.d11" %% "zhttp" % ZIOHttpVersion
 
+
+  lazy val deeplearning4j = Seq(
+    "org.deeplearning4j" % "deeplearning4j-core" % "1.0.0-beta6",
+    "org.nd4j" % "nd4j-native-platform" % "1.0.0-beta6"
+  )
 }

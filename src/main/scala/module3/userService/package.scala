@@ -1,7 +1,7 @@
 package module3
 
-import module3.emailService.{Email, EmailService, Html}
-import module3.userDAO.UserDAO
+import module3.emailService._
+import module3.userDAO._
 import zio.console.Console
 import zio.macros.accessible
 import zio.{Has, RIO, RLayer, ULayer, URLayer, ZIO, ZLayer}
