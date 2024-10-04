@@ -12,7 +12,7 @@ import org.deeplearning4j.nn.weights.WeightInit
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener
 import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.factory.Nd4j
-import org.nd4j.linalg.learning.config.Sgd
+import org.nd4j.linalg.learning.config.{AdaMax, Sgd}
 import org.nd4j.linalg.learning.regularization.{L2Regularization, Regularization, WeightDecay}
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction
 
@@ -35,14 +35,14 @@ object GravesLSTMCharModellingExample {
   def main(args: Array[String]) {
     val lstmLayerSize = 200                     //Размер каждого слоя
     val miniBatchSize = 32                      //Размер батча
-    val exampleLength = 1000                    //Длинна примера для обучения, можно увеличивать
+    val exampleLength = 2000                    //Длинна примера для обучения, можно увеличивать
     val tbpttLength = 50                        //Длинна обрезанного обратного прохода во времени т.е. параметры обновляются каждые 50 символов
     val numEpochs = 1                           //Количество эпох
     val generateSamplesEveryNMinibatches = 10   //Как часто генерировать тестовые разультаты?
-    val nSamplesToGenerate = 4                  //Количество тестовых результатов после каждой эпохи
+    val nSamplesToGenerate = 2                  //Количество тестовых результатов после каждой эпохи
     val nCharactersToSample = 300               //Длинна тестового результата
     val rng = new Random(12345)
-    val initializationSample ="Привет"
+    val initializationSample ="сказал"
 
     //Подготовка датасета для обучения
     val iter = getShakespeareIterator(miniBatchSize, exampleLength)
@@ -52,7 +52,7 @@ object GravesLSTMCharModellingExample {
     val regularizations:List[Regularization] =(new WeightDecay(0.95, true) :: new L2Regularization(0.001) :: Nil)
     val conf: MultiLayerConfiguration = new NeuralNetConfiguration.Builder()
       .optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
-      .updater(new Sgd(0.1))
+      .updater(new AdaMax(0.95))
       .seed(12345)
       .regularization(regularizations.asJava)
       .weightInit(WeightInit.XAVIER)

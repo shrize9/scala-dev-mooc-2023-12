@@ -13,5 +13,8 @@ object CharacterIteratorSample extends App{
   val characterIteratorSample =new CharacterIterator("/Users/p_kuzmin/IdeaProjects/parserSMM/src/main/resources/textForStatistic/Finansist.txt", Charset.forName("UTF-8"), miniBatchSize, exampleLength, validCharacters, new Random(12345))
 
   println(characterIteratorSample.totalOutcomes())
+  while (characterIteratorSample.hasNext) {
+    val ds = characterIteratorSample.next
+  }
 
 }
