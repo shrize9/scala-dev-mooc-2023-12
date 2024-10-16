@@ -42,7 +42,7 @@ object GravesLSTMCharModellingExample {
     val nSamplesToGenerate = 2                  //Количество тестовых результатов после каждой эпохи
     val nCharactersToSample = 300               //Длинна тестового результата
     val rng = new Random(12345)
-    val initializationSample ="сказал"
+    val initializationSample ="what"
 
     //Подготовка датасета для обучения
     val iter = getShakespeareIterator(miniBatchSize, exampleLength)
@@ -114,7 +114,9 @@ object GravesLSTMCharModellingExample {
   def getShakespeareIterator(miniBatchSize: Int, sequenceLength: Int): CharacterIterator = {
     //https://www.gutenberg.org/ebooks/100
     val validCharacters: Array[Char] = CharacterIterator.getMinimalCharacterSet //Which characters are allowed? Others will be removed
-    new CharacterIterator("/Users/p_kuzmin/IdeaProjects/parserSMM/src/main/resources/textForStatistic/Finansist.txt", Charset.forName("UTF-8"), miniBatchSize, sequenceLength, validCharacters, new Random(12345))
+    println(validCharacters.mkString("|"))
+    //new CharacterIterator("/Users/p_kuzmin/IdeaProjects/parserSMM/src/main/resources/textForStatistic/Finansist.txt", Charset.forName("UTF-8"), miniBatchSize, sequenceLength, validCharacters, new Random(12345))
+    new CharacterIterator("/Users/p_kuzmin/IdeaProjects/scala-dev-mooc-2023-12/shakespeare.txt", Charset.forName("UTF-8"), miniBatchSize, sequenceLength, validCharacters, new Random(12345))
   }
 
   /** Генерация тестового примера для обученой сети

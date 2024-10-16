@@ -93,8 +93,10 @@ public class CharacterIterator implements DataSetIterator {
     /** A minimal character set, with a-z, A-Z, 0-9 and common punctuation etc */
     public static char[] getMinimalCharacterSet(){
         List<Character> validChars = new LinkedList<>();
-        for(char c='а'; c<='я'; c++) validChars.add(c);
-        for(char c='А'; c<='Я'; c++) validChars.add(c);
+//        for(char c='а'; c<='я'; c++) validChars.add(c);
+//        for(char c='А'; c<='Я'; c++) validChars.add(c);
+        for(char c='a'; c<='z'; c++) validChars.add(c);
+        for(char c='A'; c<='Z'; c++) validChars.add(c);
         for(char c='0'; c<='9'; c++) validChars.add(c);
         char[] temp = {'!', '&', '(', ')', '?', '-', '\'', '"', ',', '.', ':', ';', ' ', '\n', '\t'};
         for( char c : temp ) validChars.add(c);
