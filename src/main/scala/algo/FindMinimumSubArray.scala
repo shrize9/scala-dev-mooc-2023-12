@@ -10,8 +10,7 @@ object FindMinimumSubArray extends App {
 
 
   val result =for{x<- 0 to inputArray.length-1} yield{
-    val sumX =inputArray(x)
-    var sumY =sumX
+    var sumY =inputArray(x)
     for{y <-x+1 to inputArray.length-1 } yield {
       sumY=sumY +inputArray(y)
       SubArray(x,y, sumY)
