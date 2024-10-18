@@ -14,6 +14,7 @@ import org.nd4j.evaluation.classification.{Evaluation, ROC}
 import org.nd4j.linalg.activations.Activation
 import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize
+import org.nd4j.linalg.dataset.api.preprocessor.serializer.NormalizerSerializer
 import org.nd4j.linalg.factory.Nd4j
 import org.nd4j.linalg.learning.config.{Adam, Sgd}
 import org.nd4j.linalg.learning.regularization.{L2Regularization, Regularization, WeightDecay}
