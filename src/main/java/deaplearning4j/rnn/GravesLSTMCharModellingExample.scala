@@ -56,7 +56,6 @@ object GravesLSTMCharModellingExample {
       .seed(12345)
       .regularization(regularizations.asJava)
       .weightInit(WeightInit.XAVIER)
-      .updater(Updater.RMSPROP)
       .list
       .layer(0, new LSTM.Builder().nIn(iter.inputColumns).nOut(lstmLayerSize)
         .activation(Activation.TANH).build())

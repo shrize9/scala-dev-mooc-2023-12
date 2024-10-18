@@ -10,6 +10,8 @@ import java.time.temporal.ChronoUnit
 import java.util
 import java.util.Date
 import scala.util.Random
+import scala.jdk.CollectionConverters._
+
 
 
 class DateGeneratorDataSet(val startDate:Date, val endDate:Date, val sizeBatch:Int, val examples:Int) extends DataSetIterator{
@@ -48,11 +50,8 @@ class DateGeneratorDataSet(val startDate:Date, val endDate:Date, val sizeBatch:I
     }
   }
 
-  def sample(): Unit = {
-    pairs.take(5).foreach{
-      case (dt, label)=>
-        println(s"$dt - $label")
-    }
+  def sample() = {
+    pairs.take(10)
   }
 
   def tensor(date:String) = {
@@ -84,7 +83,7 @@ class DateGeneratorDataSet(val startDate:Date, val endDate:Date, val sizeBatch:I
 
   override def getPreProcessor: DataSetPreProcessor = ???
 
-  override def getLabels: util.List[String] = ???
+  override def getLabels: util.List[String] = formatters.asJava
 
   private var cursor:Int =0
   override def hasNext: Boolean = {
@@ -98,10 +97,10 @@ class DateGeneratorDataSet(val startDate:Date, val endDate:Date, val sizeBatch:I
     val result = Nd4j.zeros(size, maxInput.toLong)
     val labels = Nd4j.zeros(size, {formatters.size -1}.toLong)
 
-    for{i <-0 to size }{
+    for{i <-0 to size-1 }{
       val (date, label) =pairs(cursor + i)
       result.putRow(i, tensor(date).getRow(0))
-      labels.putScalar(label, 1)
+      labels.getRow(i).putScalar(label,1)
     }
 
     cursor +=batch

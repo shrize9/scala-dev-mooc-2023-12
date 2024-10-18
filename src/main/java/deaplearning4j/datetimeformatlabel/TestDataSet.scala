@@ -13,8 +13,10 @@ object TestDataSet extends App{
   println(dt.tensor("вт, окт. 08 2019"))
   println(dt.tensor("17.10.2024"))
 
-  while(dt.hasNext){
-    val dataset =dt.next()
-  }
+  println(dt.next())
   println("is ok")
+
+  val iris =new IrisDataSetIterator()
+
+  println(iris.next())
 }
