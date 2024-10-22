@@ -10,13 +10,13 @@ case object Empty extends Tree
 object TreeOps{
   type Position =Int
   val isCenter:Position=0
-  val isLeft:Position  =1
-  val isRight:Position =2
+  val isLeft:Position  = -1
+  val isRight:Position = 1
 
   def add(root:Tree)(value:Int):Tree = root match {
-    case Empty => Node(value)
-    case node@Node(nodeValue, _, right) if nodeValue >= value  => node.copy(right =add(right)(value))
-    case node@Node(nodeValue, left, _) if nodeValue < value  => node.copy(left =add(left)(value))
+    case Empty => println(s"create empty node with value: ${value}");Node(value)
+    case node@Node(nodeValue, _, right) if nodeValue < value  => println(s"need add to right by ${nodeValue} add $value"); node.copy(right =add(right)(value))
+    case node@Node(nodeValue, left, _) if nodeValue >= value  => println(s"need add to left by ${nodeValue} add $value"); node.copy(left =add(left)(value))
     case _ =>
       throw new Exception("not defined")
   }
@@ -38,65 +38,45 @@ object TreeOps{
 
   def printSchema(root:Tree)= {
     val _countOfLevels =countOfLevels(root)
-    val prepareRowsCols =Array.fill[ListBuffer[(Position,Int)]](_countOfLevels){new ListBuffer[(Position, Position)]()}
+    val arrayTransformed =Array.fill[(Position,Option[Int])](_countOfLevels, Math.pow(2, _countOfLevels).toInt+1){(isCenter, None)}
 
-    def fillRowsCols(_root:Tree, position: Position, level:Int)(prepareRowsCols:Array[ListBuffer[(Position,Int)]]): Array[ListBuffer[(Position,Int)]] = {
+    def transform(_root:Tree, position: Position, level:Int, parentColIndex:Int)(prepareRowsCols:Array[Array[(Position,Option[Int])]]): Array[Array[(Position,Option[Int])]] = {
       _root match {
         case Empty => prepareRowsCols
-        case Node(nodeValue, Empty, Empty)  => {
-          prepareRowsCols(level).addOne((position, nodeValue))
-          prepareRowsCols
-        }
-        case Node(nodeValue, Empty, left)  => {
-          prepareRowsCols(level).addOne((position, nodeValue))
-          fillRowsCols(left, isLeft, level+1)(prepareRowsCols)
-        }
-        case Node(nodeValue, right, Empty)  => {
-          prepareRowsCols(level).addOne((position, nodeValue))
-          fillRowsCols(right, isRight,  level+1)(prepareRowsCols)
-        }
         case Node(nodeValue, right, left)  => {
-          prepareRowsCols(level).addOne((position, nodeValue))
-          fillRowsCols(right, isRight,  level+1)(prepareRowsCols)
-          fillRowsCols(left, isLeft,  level+1)(prepareRowsCols)
+          val currentCol =parentColIndex +position
+          println(s"${nodeValue} - ${right} - $left - $level - $currentCol")
+
+          arrayTransformed(level)(currentCol) =((position, Some(nodeValue)))
+
+          transform(right, isRight,  level+1, currentCol)(prepareRowsCols)
+          transform(left, isLeft,  level+1, currentCol)(prepareRowsCols)
+
+          prepareRowsCols
         }
         case _ =>
           throw new Exception("not defined")
       }
     }
-    fillRowsCols(root, isCenter, 0)(prepareRowsCols)
+    transform(root, isCenter, 0, (arrayTransformed(0).size /2))(arrayTransformed)
 
-    val offsetTabs =for{i<- 0 to _countOfLevels*2}yield{"\t"}
-    prepareRowsCols.zipWithIndex.foreach{
-      case (lb, idxRow) => {
-        lb.toList.sortBy(_._1).zipWithIndex.foreach {
-          case ((position: Position, value), idxCol) if position == isCenter =>
-            print(offsetTabs.take({
-              _countOfLevels / 2
-            }).mkString("") + value)
-          case ((position: Position, value), idxCol) if position == isLeft =>
-            print(offsetTabs.take({
-              _countOfLevels / 2 - idxRow
-            }).mkString("") +"l(" +value +")")
-          case ((position: Position, value), idxCol) if position == isRight =>
-            print(offsetTabs.take({
-              _countOfLevels / 2 + idxRow
-            }).mkString("") +"r(" + value +")")
-        }
-        println("")
+    val symbols =Map(isCenter-> "c", isLeft ->"l", isRight ->"r")
+
+    arrayTransformed.foreach{
+      case row=> {
+        println(
+          row.map{case column=> {
+            column._2.map(i=> symbols(column._1) + ":" +i.toString + " ").getOrElse(" ")
+          }}.mkString(" ")
+        )
       }
     }
   }
 }
 
 object Trees extends App{
-  val root =TreeOps.add(
-              TreeOps.add(
-                TreeOps.add(
-                  TreeOps.add(Empty)(10)
-                )(4)
-              )(16)
-            )(6)
+  val values = { 10 :: 4 :: 16 :: 3 :: 6  :: 7 :: 17 :: 20 :: 15 :: Nil}
+  val root   =values.tail.foldLeft(Node(values.head):Tree){case (node:Tree, value)=> TreeOps.add(node)(value)}
 
   println(s"levels in tree ${TreeOps.countOfLevels(root)}")
 
