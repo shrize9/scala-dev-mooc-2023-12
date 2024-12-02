@@ -35,12 +35,17 @@ public class Testing {
         if(input =="") return "Не найдено";
         StringBuilder result = new StringBuilder();
 
+        Pattern hasSpecChar =Pattern.compile("[" +specialChars +"]");
+        Pattern hasBigLetter =Pattern.compile("\\W");
+        Pattern hasSmallLetter =Pattern.compile("\\w");
+        Pattern hasDigit =Pattern.compile("\\d");
+
         for(String currPassword: input.split(" ")){
             if(
-                Pattern.compile("[" +specialChars +"]").matcher(currPassword).find() &
-                Pattern.compile("\\W").matcher(currPassword).find() &
-                Pattern.compile("\\w").matcher(currPassword).find() &
-                Pattern.compile("\\d").matcher(currPassword).find()
+                hasSpecChar.matcher(currPassword).find() &&
+                hasBigLetter.matcher(currPassword).find() &&
+                hasSmallLetter.matcher(currPassword).find() &&
+                hasDigit.matcher(currPassword).find()
             )
                 result.append(currPassword).append(" ");
         }
