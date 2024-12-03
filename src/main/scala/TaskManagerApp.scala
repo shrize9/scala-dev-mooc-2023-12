@@ -73,7 +73,7 @@ object TaskManagerOps{
 
 object TaskManagerApp extends App {
   import TaskManagerOps._
-  val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
+  val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ОтветитьНаСообщения,1;ADD,ВернутьДокументы,1;REMOVE;GET"
   println("INPUT:" +sample)
   val taaskManager =parseLine(sample)
   forEach(taaskManager)(println)
