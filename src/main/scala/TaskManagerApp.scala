@@ -59,13 +59,12 @@ object TaskManagerOps{
    }
 
    def forEach(taskManager: TaskManager)(callback:TaskManagerCommand=>Unit)= if(taskManager !=null) {
-      def visit(current: TaskManager): Unit = current match {
-        case _current@TaskManager(_, _) if _current == null =>
+      def visit(current: TaskManager): Unit = if(current !=null) {current match {
         case TaskManager(command, null) => callback(command)
         case TaskManager(command, next) => {
           callback(command); visit(next)
         }
-      }
+      }}
 
       callback(taskManager.value)
       visit(taskManager.next)
@@ -73,9 +72,20 @@ object TaskManagerOps{
 }
 
 object TaskManagerApp extends App {
-    import TaskManagerOps._
-    val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
+  import TaskManagerOps._
+  val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
+  println("INPUT:" +sample)
+  val taaskManager =parseLine(sample)
+  forEach(taaskManager)(println)
 
-    val taaskManager =parseLine(sample)
-    forEach(taaskManager)(println)
+  val sample1 ="GET"
+  println("\nINPUT:" +sample1)
+  val taskManagerGET =parseLine(sample1)
+  forEach(taskManagerGET)(println)
+
+  val sample2 ="REMOVE;ADD,КупитьПродукты,3;REMOVE;ADD,СделатьУборку,2;ADD,Постирать,5;ADD,Погладить,5;GET"
+  println("\nINPUT:" +sample2)
+  val taskManager2 =parseLine(sample2)
+  forEach(taskManager2)(println)
+
 }
