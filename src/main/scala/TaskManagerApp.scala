@@ -58,34 +58,71 @@ object TaskManagerOps{
      _parseLine(line.split(delimiter).toList)
    }
 
-   def forEach(taskManager: TaskManager)(callback:TaskManagerCommand=>Unit)= if(taskManager !=null) {
-      def visit(current: TaskManager): Unit = if(current !=null) {current match {
-        case TaskManager(command, null) => callback(command)
-        case TaskManager(command, next) => {
-          callback(command); visit(next)
-        }
-      }}
+   implicit class ImplTaskManagerOps(taskManager: TaskManager){
+     def sorted(accum:List[TaskManagerCommand])={
+       accum.collect {
+         case add@ADD(_, _) => add
+       }.sortBy {
+         case ADD(name, priority) => (priority, name)
+       }
+     }
 
-      callback(taskManager.value)
-      visit(taskManager.next)
+     def execute(): Unit = {
+       def _execute(taskManager: TaskManager, accum:List[TaskManagerCommand]):List[TaskManagerCommand] = taskManager match {
+         case null => accum
+         case TaskManager(NIL, null) => accum
+         case TaskManager(GET, null) if accum.size ==0=> {
+           println("Список пуст")
+           accum
+         }
+         case TaskManager(GET, null) => {
+           sorted(accum).foreach{
+             case ADD(name, priority)=>
+               print(s"${name},${priority};")
+           }
+           println()
+           accum
+         }
+         case TaskManager(add:ADD, next:TaskManager) => _execute(next, add :: accum)
+         case TaskManager(REMOVE, next:TaskManager) => {
+           val removed =sorted(accum)
+           _execute(next, if(removed.size >0) removed.tail else Nil)
+         }
+       }
+
+       _execute(taskManager, Nil)
+     }
+
+     def forEach(callback:TaskManagerCommand=>Unit)= if(taskManager !=null) {
+       def visit(current: TaskManager): Unit = if(current !=null) {current match {
+         case TaskManager(command, null) => callback(command)
+         case TaskManager(command, next) => {
+           callback(command); visit(next)
+         }
+       }}
+
+       callback(taskManager.value)
+       visit(taskManager.next)
+     }
    }
 }
 
 object TaskManagerApp extends App {
   import TaskManagerOps._
-  val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ОтветитьНаСообщения,1;ADD,ВернутьДокументы,1;REMOVE;GET"
+  val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ВернутьДокументы,1;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
   println("INPUT:" +sample)
   val taaskManager =parseLine(sample)
-  forEach(taaskManager)(println)
+  taaskManager.forEach(println)
+  taaskManager.execute()
 
   val sample1 ="GET"
   println("\nINPUT:" +sample1)
   val taskManagerGET =parseLine(sample1)
-  forEach(taskManagerGET)(println)
+  taskManagerGET.execute()
 
   val sample2 ="REMOVE;ADD,КупитьПродукты,3;REMOVE;ADD,СделатьУборку,2;ADD,Постирать,5;ADD,Погладить,5;GET"
   println("\nINPUT:" +sample2)
   val taskManager2 =parseLine(sample2)
-  forEach(taskManager2)(println)
+  taskManager2.execute()
 
 }
