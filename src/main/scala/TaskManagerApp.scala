@@ -32,10 +32,30 @@ ADD,ПосетитьВстречу,2;REMOVE;ADD,ПрочитатьГазету,1
 
 //DATA
 sealed trait TaskManagerCommand
+sealed trait TaskManagerExecuter{
+  def apply(tasks:List[TaskManagerCommand]):List[TaskManagerCommand]
+}
+
 case object NIL extends TaskManagerCommand
-case object REMOVE extends TaskManagerCommand
-case object GET extends TaskManagerCommand
 case class ADD(name:String, priority:Int) extends TaskManagerCommand
+case object REMOVE extends TaskManagerCommand with TaskManagerExecuter{
+  override def apply(tasks: List[TaskManagerCommand]): List[TaskManagerCommand] = {
+    if(tasks.size >0) tasks.tail else Nil
+  }
+}
+case object GET extends TaskManagerCommand with TaskManagerExecuter{
+  override def apply(tasks: List[TaskManagerCommand]): List[TaskManagerCommand] = if (tasks.size !=0){
+    tasks.foreach{
+      case ADD(name, priority) =>
+        print(s"${name},${priority};")
+    }
+    println()
+    tasks
+  }else{
+    println("Список пуст")
+    tasks
+  }
+}
 
 case class TaskManager(value:TaskManagerCommand, next:TaskManager)
 
@@ -70,19 +90,8 @@ object TaskManagerOps{
          case null => accum
          case TaskManager(NIL, null) => accum
          case TaskManager(add:ADD, next:TaskManager) => _execute(next, sorted(add :: accum))
-         case TaskManager(REMOVE, next:TaskManager) => _execute(next, if(accum.size >0) accum.tail else Nil)
-         case TaskManager(GET, null) if accum.size ==0=> {
-           println("Список пуст")
-           accum
-         }
-         case TaskManager(GET, null) => {
-           accum.foreach{
-             case ADD(name, priority)=>
-               print(s"${name},${priority};")
-           }
-           println()
-           accum
-         }
+         case TaskManager(executer:TaskManagerExecuter, null) => executer(accum)
+         case TaskManager(executer:TaskManagerExecuter, next:TaskManager) => _execute(next, executer(accum))
        }
 
        _execute(taskManager, Nil)
