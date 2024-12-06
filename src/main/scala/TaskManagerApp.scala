@@ -1,3 +1,4 @@
+import scala.annotation.tailrec
 
 /*
 Вы разрабатываете программу для управления задачами в списке дел. Сначала вам необходимо реализовать односвязный список, который будет хранить задачи. Каждая задача имеет название и приоритет.
@@ -35,14 +36,16 @@ case object NIL extends TaskManagerCommand
 case object REMOVE extends TaskManagerCommand
 case object GET extends TaskManagerCommand
 case class ADD(name:String, priority:Int) extends TaskManagerCommand
-case class TaskManager(value:TaskManagerCommand, next:TaskManager) extends TaskManagerCommand
+
+case class TaskManager(value:TaskManagerCommand, next:TaskManager)
 
 //OPERATIONS
 object TaskManagerCommandOps{
-  def parse(command:String, delimiterParameters:String=","):TaskManagerCommand = command.split(delimiterParameters).toList match {
-    case "ADD" :: name :: priority :: Nil => ADD(name, priority.toInt)
-    case "REMOVE" :: Nil => REMOVE
-    case "GET" :: Nil => GET
+  def parse(command:String, delimiterParameters:String=","):Either[Exception, TaskManagerCommand] = command.split(delimiterParameters).toList match {
+    case "ADD" :: name :: priority :: Nil => Right(ADD(name, priority.toInt))
+    case "REMOVE" :: Nil => Right(REMOVE)
+    case "GET" :: Nil => Right(GET)
+    case commands => Left(new Exception(s"error ${commands}"))
   }
 }
 
@@ -52,8 +55,8 @@ object TaskManagerOps{
    def parseLine(line:String, delimiter:String=";"):TaskManager = {
      def _parseLine(strCommands:List[String]):TaskManager=strCommands match {
        case Nil => TaskManager(NIL, null)
-       case strCommand :: Nil => TaskManager(parse(strCommand), null)
-       case strCommand :: tails => TaskManager(parse(strCommand), _parseLine(tails))
+       case strCommand :: Nil => TaskManager(parse(strCommand).toOption.get, null)
+       case strCommand :: tails => TaskManager(parse(strCommand).toOption.get, _parseLine(tails))
      }
      _parseLine(line.split(delimiter).toList)
    }
@@ -61,32 +64,30 @@ object TaskManagerOps{
    implicit class ImplTaskManagerOps(taskManager: TaskManager){
      def sorted(accum:List[TaskManagerCommand])={
        accum.collect {
-         case add@ADD(_, _) => add
+         case add:ADD => add
        }.sortBy {
          case ADD(name, priority) => (priority, name)
        }
      }
 
      def execute(): Unit = {
+       @tailrec
        def _execute(taskManager: TaskManager, accum:List[TaskManagerCommand]):List[TaskManagerCommand] = taskManager match {
          case null => accum
          case TaskManager(NIL, null) => accum
+         case TaskManager(add:ADD, next:TaskManager) => _execute(next, sorted(add :: accum))
+         case TaskManager(REMOVE, next:TaskManager) => _execute(next, if(accum.size >0) accum.tail else Nil)
          case TaskManager(GET, null) if accum.size ==0=> {
            println("Список пуст")
            accum
          }
          case TaskManager(GET, null) => {
-           sorted(accum).foreach{
+           accum.foreach{
              case ADD(name, priority)=>
                print(s"${name},${priority};")
            }
            println()
            accum
-         }
-         case TaskManager(add:ADD, next:TaskManager) => _execute(next, add :: accum)
-         case TaskManager(REMOVE, next:TaskManager) => {
-           val removed =sorted(accum)
-           _execute(next, if(removed.size >0) removed.tail else Nil)
          }
        }
 
