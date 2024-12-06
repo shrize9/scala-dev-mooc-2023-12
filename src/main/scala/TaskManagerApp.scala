@@ -62,13 +62,7 @@ object TaskManagerOps{
    }
 
    implicit class ImplTaskManagerOps(taskManager: TaskManager){
-     def sorted(accum:List[TaskManagerCommand])={
-       accum.collect {
-         case add:ADD => add
-       }.sortBy {
-         case ADD(name, priority) => (priority, name)
-       }
-     }
+     def sorted(accum:List[TaskManagerCommand])={ accum.collect { case add:ADD => add }.sortBy { case ADD(name, priority) => (priority, name)}}
 
      def execute(): Unit = {
        @tailrec
@@ -112,9 +106,8 @@ object TaskManagerApp extends App {
   import TaskManagerOps._
   val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ВернутьДокументы,1;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
   println("INPUT:" +sample)
-  val taaskManager =parseLine(sample)
-  taaskManager.forEach(println)
-  taaskManager.execute()
+  val taskManager =parseLine(sample)
+  taskManager.execute()
 
   val sample1 ="GET"
   println("\nINPUT:" +sample1)
@@ -125,5 +118,10 @@ object TaskManagerApp extends App {
   println("\nINPUT:" +sample2)
   val taskManager2 =parseLine(sample2)
   taskManager2.execute()
+
+  val sample3 ="ADD,ПосетитьВстречу,2;REMOVE;ADD,ПрочитатьГазету,1;REMOVE;GET"
+  println("\nINPUT:" +sample3)
+  val taskManager3 =parseLine(sample3)
+  taskManager3.execute()
 
 }
