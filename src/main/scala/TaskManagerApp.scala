@@ -37,7 +37,7 @@ sealed trait TaskManagerExecuter{
 }
 
 case object NIL extends TaskManagerCommand
-case class ADD(name:String, priority:Int) extends TaskManagerCommand
+case class ADD[T](name:T, priority:Int) extends TaskManagerCommand
 case object REMOVE extends TaskManagerCommand with TaskManagerExecuter{
   override def apply(tasks: List[TaskManagerCommand]): List[TaskManagerCommand] = {
     if(tasks.size >0) tasks.tail else Nil
@@ -57,10 +57,19 @@ case object GET extends TaskManagerCommand with TaskManagerExecuter{
   }
 }
 
-case class TaskManager(value:TaskManagerCommand, next:TaskManager)
-
 //OPERATIONS
 object TaskManagerCommandOps{
+  trait TaskManagerList{
+    def :: (value:TaskManagerCommand):TaskManagerList
+  }
+  case object EmptyTaskManager extends TaskManagerList{
+    override def :: (value: TaskManagerCommand): TaskManager = TaskManager(value, null)
+  }
+  case class TaskManager(value:TaskManagerCommand, next:TaskManager) extends TaskManagerList{
+    override def :: (value: TaskManagerCommand): TaskManager = TaskManager(value, this)
+  }
+
+
   def parse(command:String, delimiterParameters:String=","):Either[Exception, TaskManagerCommand] = command.split(delimiterParameters).toList match {
     case "ADD" :: name :: priority :: Nil => Right(ADD(name, priority.toInt))
     case "REMOVE" :: Nil => Right(REMOVE)
@@ -72,24 +81,27 @@ object TaskManagerCommandOps{
 object TaskManagerOps{
    import TaskManagerCommandOps._
 
-   def parseLine(line:String, delimiter:String=";"):TaskManager = {
-     def _parseLine(strCommands:List[String]):TaskManager=strCommands match {
-       case Nil => TaskManager(NIL, null)
-       case strCommand :: Nil => TaskManager(parse(strCommand).toOption.get, null)
-       case strCommand :: tails => TaskManager(parse(strCommand).toOption.get, _parseLine(tails))
+   def parseLine(line:String, delimiter:String=";"):TaskManagerList = {
+     def _parseLine(strCommands:List[String]):TaskManagerList=strCommands match {
+       case Nil => EmptyTaskManager
+       case strCommand :: Nil => parse(strCommand).toOption.get :: EmptyTaskManager
+       case strCommand :: tails => parse(strCommand).map(_  :: _parseLine(tails)) match {
+         case Left(error) => throw error
+         case Right(value) => value
+       }
      }
      _parseLine(line.split(delimiter).toList)
    }
 
-   implicit class ImplTaskManagerOps(taskManager: TaskManager){
-     def sorted(accum:List[TaskManagerCommand])={ accum.collect { case add:ADD => add }.sortBy { case ADD(name, priority) => (priority, name)}}
+   implicit class ImplTaskManagerOps(taskManager: TaskManagerList){
+     def sorted(accum:List[TaskManagerCommand])={ accum.collect { case add:ADD[String] => add }.sortBy { case ADD(name, priority) => (priority, name)}}
 
      def execute(): Unit = {
        @tailrec
-       def _execute(taskManager: TaskManager, accum:List[TaskManagerCommand]):List[TaskManagerCommand] = taskManager match {
+       def _execute(taskManager: TaskManagerList, accum:List[TaskManagerCommand]):List[TaskManagerCommand] = taskManager match {
          case null => accum
          case TaskManager(NIL, null) => accum
-         case TaskManager(add:ADD, next:TaskManager) => _execute(next, sorted(add :: accum))
+         case TaskManager(add:ADD[String], next:TaskManager) => _execute(next, sorted(add :: accum))
          case TaskManager(executer:TaskManagerExecuter, null) => executer(accum)
          case TaskManager(executer:TaskManagerExecuter, next:TaskManager) => _execute(next, executer(accum))
        }
@@ -97,16 +109,19 @@ object TaskManagerOps{
        _execute(taskManager, Nil)
      }
 
-     def forEach(callback:TaskManagerCommand=>Unit)= if(taskManager !=null) {
-       def visit(current: TaskManager): Unit = if(current !=null) {current match {
-         case TaskManager(command, null) => callback(command)
-         case TaskManager(command, next) => {
-           callback(command); visit(next)
-         }
-       }}
+     def forEach(callback:TaskManagerCommand=>Unit)= taskManager match {
+       case EmptyTaskManager =>
+       case taskManager: TaskManager =>{
+         def visit(current: TaskManager): Unit = if(current !=null) {current match {
+           case TaskManager(command, null) => callback(command)
+           case TaskManager(command, next) => {
+             callback(command); visit(next)
+           }
+         }}
 
-       callback(taskManager.value)
-       visit(taskManager.next)
+         callback(taskManager.value)
+         visit(taskManager.next)
+       }
      }
    }
 }
