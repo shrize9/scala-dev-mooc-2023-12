@@ -37,7 +37,7 @@ sealed trait TaskManagerExecuter{
 }
 
 case object NIL extends TaskManagerCommand
-case class ADD[T](name:T, priority:Int) extends TaskManagerCommand
+case class ADD(name:String, priority:Int) extends TaskManagerCommand
 case object REMOVE extends TaskManagerCommand with TaskManagerExecuter{
   override def apply(tasks: List[TaskManagerCommand]): List[TaskManagerCommand] = {
     if(tasks.size >0) tasks.tail else Nil
@@ -93,15 +93,28 @@ object TaskManagerOps{
      _parseLine(line.split(delimiter).toList)
    }
 
-   implicit class ImplTaskManagerOps(taskManager: TaskManagerList){
-     def sorted(accum:List[TaskManagerCommand])={ accum.collect { case add:ADD[String] => add }.sortBy { case ADD(name, priority) => (priority, name)}}
+   private def sorted(accum:List[TaskManagerCommand])={ accum.collect { case add:ADD => add }.sortBy { case ADD(name, priority) => (priority, name)}}
 
+  implicit def implTaskManagerToList(taskManager: TaskManagerList):List[ADD]={
+     @tailrec
+     def _execute(taskManager: TaskManagerList, accum:List[TaskManagerCommand]):List[TaskManagerCommand] = taskManager match {
+       case null => accum
+       case TaskManager(NIL, null) => accum
+       case TaskManager(add:ADD, next:TaskManager) => _execute(next, sorted(add :: accum))
+       case TaskManager(executer:TaskManagerExecuter, null) => executer(accum)
+       case TaskManager(executer:TaskManagerExecuter, next:TaskManager) => _execute(next, executer(accum))
+     }
+
+     _execute(taskManager, Nil).collect{case add:ADD => add}
+   }
+
+   implicit class ImplTaskManagerOps(taskManager: TaskManagerList){
      def execute(): Unit = {
        @tailrec
        def _execute(taskManager: TaskManagerList, accum:List[TaskManagerCommand]):List[TaskManagerCommand] = taskManager match {
          case null => accum
          case TaskManager(NIL, null) => accum
-         case TaskManager(add:ADD[String], next:TaskManager) => _execute(next, sorted(add :: accum))
+         case TaskManager(add:ADD, next:TaskManager) => _execute(next, sorted(add :: accum))
          case TaskManager(executer:TaskManagerExecuter, null) => executer(accum)
          case TaskManager(executer:TaskManagerExecuter, next:TaskManager) => _execute(next, executer(accum))
        }
@@ -112,12 +125,13 @@ object TaskManagerOps{
      def forEach(callback:TaskManagerCommand=>Unit)= taskManager match {
        case EmptyTaskManager =>
        case taskManager: TaskManager =>{
-         def visit(current: TaskManager): Unit = if(current !=null) {current match {
+         def visit(current: TaskManager): Unit = current match {
+           case null =>
            case TaskManager(command, null) => callback(command)
            case TaskManager(command, next) => {
              callback(command); visit(next)
            }
-         }}
+         }
 
          callback(taskManager.value)
          visit(taskManager.next)
@@ -128,6 +142,7 @@ object TaskManagerOps{
 
 object TaskManagerApp extends App {
   import TaskManagerOps._
+
   val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ВернутьДокументы,1;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
   println("INPUT:" +sample)
   val taskManager =parseLine(sample)
