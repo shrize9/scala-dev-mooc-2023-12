@@ -70,11 +70,14 @@ object TaskManagerCommandOps{
   }
 
 
-  def parse(command:String, delimiterParameters:String=","):Either[Exception, TaskManagerCommand] = command.split(delimiterParameters).toList match {
-    case "ADD" :: name :: priority :: Nil => Right(ADD(name, priority.toInt))
-    case "REMOVE" :: Nil => Right(REMOVE)
-    case "GET" :: Nil => Right(GET)
-    case commands => Left(new Exception(s"error ${commands}"))
+  def parse(command:String, delimiterParameters:String=","):Either[Exception, TaskManagerCommand] = {
+    val parsed =command.split(delimiterParameters).toList
+    parsed.head.toUpperCase :: parsed.tail match {
+      case "ADD" :: name :: priority :: Nil => Right(ADD(name, priority.toInt))
+      case "REMOVE" :: Nil => Right(REMOVE)
+      case "GET" :: Nil => Right(GET)
+      case commands => Left(new Exception(s"error ${commands}"))
+    }
   }
 }
 
@@ -143,24 +146,14 @@ object TaskManagerOps{
 object TaskManagerApp extends App {
   import TaskManagerOps._
 
-  val sample ="ADD,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ВернутьДокументы,1;ADD,ОтветитьНаСообщения,1;REMOVE;GET"
-  println("INPUT:" +sample)
-  val taskManager =parseLine(sample)
-  taskManager.execute()
+  val samples ="add,НаписатьКод,2;ADD,ТестироватьКод,3;ADD,ВернутьДокументы,1;ADD,ОтветитьНаСообщения,1;REMOVE;GET" :: "GET" :: "REMOVE;ADD,КупитьПродукты,3;REMOVE;ADD,СделатьУборку,2;ADD,Постирать,5;ADD,Погладить,5;GET" :: "ADD,ПосетитьВстречу,2;REMOVE;ADD,ПрочитатьГазету,1;REMOVE;GET" :: Nil
+  for{
+    sample <- samples
+  }{
+    println("INPUT:" +sample)
+    val taskManager =parseLine(sample)
 
-  val sample1 ="GET"
-  println("\nINPUT:" +sample1)
-  val taskManagerGET =parseLine(sample1)
-  taskManagerGET.execute()
-
-  val sample2 ="REMOVE;ADD,КупитьПродукты,3;REMOVE;ADD,СделатьУборку,2;ADD,Постирать,5;ADD,Погладить,5;GET"
-  println("\nINPUT:" +sample2)
-  val taskManager2 =parseLine(sample2)
-  taskManager2.execute()
-
-  val sample3 ="ADD,ПосетитьВстречу,2;REMOVE;ADD,ПрочитатьГазету,1;REMOVE;GET"
-  println("\nINPUT:" +sample3)
-  val taskManager3 =parseLine(sample3)
-  taskManager3.execute()
+    print("OUTPUT:");taskManager.execute()
+  }
 
 }
