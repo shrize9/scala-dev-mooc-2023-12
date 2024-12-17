@@ -152,7 +152,6 @@ object TaskManagerApp extends App {
   }{
     println("INPUT:" +sample)
     val taskManager =parseLine(sample)
-
     print("OUTPUT:");taskManager.execute()
   }
 
