@@ -1,5 +1,5 @@
-import sbt.Keys.libraryDependencies
-import sbt._
+import sbt.Keys.{libraryDependencies, scalaBinaryVersion}
+import sbt.*
 
 object Dependencies {
   lazy val KindProjectorVersion = "0.10.3"
@@ -101,4 +101,6 @@ object Dependencies {
     "org.deeplearning4j" % "deeplearning4j-core" % "1.0.0-beta6",
     "org.nd4j" % "nd4j-native-platform" % "1.0.0-beta6"
   )
+
+  lazy val parallelCollection = "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
 }

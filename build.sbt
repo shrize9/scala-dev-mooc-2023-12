@@ -20,6 +20,7 @@ libraryDependencies ++= Dependencies.quill
 libraryDependencies ++= Dependencies.testContainers
 libraryDependencies += Dependencies.zioHttp
 libraryDependencies ++= Dependencies.deeplearning4j
+libraryDependencies += Dependencies.parallelCollection
 
 scalacOptions += "-Ymacro-annotations"
 scalacOptions += "-Xlint"
