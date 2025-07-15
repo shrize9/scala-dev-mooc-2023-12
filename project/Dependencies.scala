@@ -102,5 +102,15 @@ object Dependencies {
     "org.nd4j" % "nd4j-native-platform" % "1.0.0-beta6"
   )
 
+  lazy val djl = Seq(
+    "ai.djl" % "api" % "0.31.1",
+    "ai.djl.huggingface" % "tokenizers" % "0.31.1",
+    "ai.djl.onnxruntime" % "onnxruntime-engine" % "0.31.1",
+  )
+
+  lazy val onnx = Seq(
+    "com.microsoft.onnxruntime" % "onnxruntime" % "1.20.0"
+  )
+
   lazy val parallelCollection = "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4"
 }

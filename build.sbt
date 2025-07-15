@@ -5,6 +5,8 @@ name := "scala-dev-mooc-2023-12"
 organization := "ru.otus"
 version := "1.0"
 
+scalaCompilerBridgeSource :=  ("org.scala-sbt" % "compiler-interface" % "1.10.8" % "component").sources
+
 libraryDependencies += Dependencies.scalaTest
 libraryDependencies ++= Dependencies.zio
 libraryDependencies ++= Dependencies.zioConfig
@@ -19,8 +21,11 @@ libraryDependencies += Dependencies.logback
 libraryDependencies ++= Dependencies.quill
 libraryDependencies ++= Dependencies.testContainers
 libraryDependencies += Dependencies.zioHttp
-libraryDependencies ++= Dependencies.deeplearning4j
 libraryDependencies += Dependencies.parallelCollection
+
+//libraryDependencies ++= Dependencies.deeplearning4j
+//libraryDependencies ++= Dependencies.djl
+//libraryDependencies ++= Dependencies.onnx
 
 scalacOptions += "-Ymacro-annotations"
 scalacOptions += "-Xlint"

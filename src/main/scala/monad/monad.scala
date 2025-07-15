@@ -9,19 +9,27 @@ package object monad {
 
     def get: A
 
-    def pure[R](x: R): Wrap[R] = ???
+    def pure[R](x: R): Wrap[R] = x match {
+      case null => EmptyWrap
+      case vl => NonEmptyWrap(vl)
+    }
 
-    def flatMap[R](f: A => Wrap[R]): Wrap[R] = {
-      ???
+    def flatMap[R](f: A => Wrap[R]): Wrap[R] = this match {
+      case EmptyWrap => EmptyWrap
+      case NonEmptyWrap(value) => f(value)
+      case vl => throw new NoSuchElementException(s"Wrap ${vl.getClass.getName} not define in flatMap")
     }
 
     // HINT: map можно реализовать через pure и flatMap
     def map[R](f: A => R): Wrap[R] = {
-      ???
+      flatMap((a:A)=>pure(f(a)))
     }
 
     def withFilter(f: A => Boolean): Wrap[A] = {
-      ???
+        f(get) match {
+          case true => this
+          case false => EmptyWrap
+        }
     }
 
   }

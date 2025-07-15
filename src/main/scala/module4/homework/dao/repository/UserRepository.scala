@@ -36,7 +36,11 @@ object UserRepository{
     }
 
     class ServiceImpl extends Service{
-        override def findUser(userId: UserId): QIO[Option[User]] = ???
+        val userSchema =quote{query[User]}
+        val userToRoleSchema =quote{query[UserToRole]}
+        val rolesSchema =quote{query[Role]}
+
+        override def findUser(userId: UserId): QIO[Option[User]] = ??? // dc.run(userSchema.filter(_.typedId == lift(userId))).map(_.headOption)
 
         override def createUser(user: User): QIO[User] = ???
 

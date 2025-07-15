@@ -3,6 +3,8 @@ import akka.NotUsed
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorSystem, Behavior}
 
+import java.util.concurrent.atomic.AtomicLong
+
 object MutableState extends App{
   sealed trait  Command
   case class Deposite(v:Int) extends Command
@@ -11,19 +13,19 @@ object MutableState extends App{
 
   object Account {
     def apply(am: Int): Behavior[Command] = Behaviors.setup{ctx =>
-      var amount: Int = am
+      var amount: AtomicLong = new AtomicLong(am)
 
       Behaviors.receiveMessage{
         case Deposite(v) =>
-          amount = amount + v
-          ctx.log.info(s"Deposite money $v to amount $amount. Total stet is $amount")
+          val result =amount.addAndGet(v)
+          ctx.log.info(s"Deposite money $v to amount $result. Total stet is $result")
           Behaviors.same
         case Withdraw(v) =>
-          amount = amount - v
-          ctx.log.info(s"Withdraw money $v from amount $amount. Total state is $amount")
+          val result= amount.updateAndGet(getted=> getted - v)
+          ctx.log.info(s"Withdraw money $v from amount $result. Total state is $result")
           Behaviors.same
         case Get() =>
-          ctx.log.info(s"Total state is $amount")
+          ctx.log.info(s"Total state is ${amount.get()}")
           Behaviors.same
       }
     }
@@ -43,6 +45,8 @@ object MutableState extends App{
 
       for (_ <- 1 to 10)
         account1 ! Withdraw(1)
+
+      account1 ! Get()
       account2 ! Get()
       Behaviors.same
 

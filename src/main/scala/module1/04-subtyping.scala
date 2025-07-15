@@ -20,13 +20,13 @@ object subtyping{
    * С помощью типа IsSubtypeOf выразить отношение Car и Vehicle
    *
    */
-   val t1 = ???
+   val t1:IsSubtypeOf[Car, Vehicle] = ???
   /**
    *
    * С помощью типа IsSubtypeOf выразить отношение Car и Mustang
    *
    */
-   val t2 = ???
+   val t2:IsSupertypeOf[Car, Mustang.type] = ???
 
 
   /**

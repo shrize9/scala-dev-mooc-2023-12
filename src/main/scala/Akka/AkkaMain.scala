@@ -1,6 +1,5 @@
 package Akka
 
-import Akka.AkkaMain3.change_behaviour
 import Akka.AkkaMain3.change_behaviour.WorkerProtocol
 import Akka.AkkaMain4.handle_state.Counter
 import Akka.AkkaMain4.handle_state.Counter.CounterProtocol
@@ -128,13 +127,31 @@ object AkkaMain4 {
         }
       }
     }
+
+    object CounterReceiver {
+      def apply(): Behavior[Int] = Behaviors.setup{ ctx=>
+        Behaviors.receiveMessage{
+          case counter:Int =>
+            ctx.log.info(s"CounterReceiver get counter value ${counter}")
+            Behaviors.same
+        }
+      }
+    }
   }
 
   def main(args: Array[String]): Unit = {
-    val system = ActorSystem[CounterProtocol](Counter(0), "Echo")
+    implicit val system = ActorSystem[CounterProtocol](Counter(0), "Echo")
+    implicit val ec = system.executionContext
+    implicit val timeout = Timeout(3 seconds)
+
+    val counterReceiver =system.systemActorOf(handle_state.CounterReceiver(), "CounterReceiver")
+
     system ! Inc
     system ! Inc
     system ! Inc
+
+    system ! handle_state.Counter.CounterProtocol.GetCounter(counterReceiver)
+
     Thread.sleep(1000)
     system.terminate()
   }
